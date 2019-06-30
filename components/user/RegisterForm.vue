@@ -58,6 +58,9 @@
 <script>
 export default {
     data(){
+        // rule： 当前的规则的对象
+        // value：当前调用规则的字段值
+        // callback ：是回调函数代表执行下一步，必须要调用,
          // 确认密码
         const validatePass = (rule, value, callback) => {
             if (value === '') {
@@ -89,9 +92,10 @@ export default {
                     message: '请输入密码', 
                     trigger: 'blur' 
                 }],
-                checkPassword: [{ 
-                    validator: validatePass, 
-                    trigger: 'blur' 
+                 checkPassword: [{
+                    // 自定义验证规则，validator自定义验证的函数
+                    validator: validatePass,
+                    trigger: 'blur'
                 }],
                 nickname: [{ 
                     required: true, 
