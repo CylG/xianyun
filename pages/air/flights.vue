@@ -54,32 +54,32 @@
 <script>
 import FlightsListHead from "@/components/air/flightsListHead.vue";
 import FlightsItem from "@/components/air/flightsItem.vue";
-import moment from "moment";
 import FlightsFilters from "@/components/air/flightsFilters.vue";
 import FlightsAside from "@/components/air/flightsAside.vue";
 
 export default {
-    watch: {
-        $route(){
-             this.getData();
-        }
-    },
     data(){
         return {
+            // 默认机票列表总数据,会被修改
             flightsData: {
                 // 航班总数据
+                // 默认机票列表
                 flights: [],
                 info: {},
                 options: {}
             }, 
-            dataList: [],    // 航班列表数据，用于循环flightsItem组件，单独出来是因为要分页
-            pageIndex: 1, // 当前页数
-            pageSize: 5,  // 显示条数
-            cacheFlightsData: { // 缓存一份数据，只会修改一次
+            // 总数据，一旦赋值之后不会被修改
+            cacheFlightsData: { 
+                // 缓存一份数据，只会修改一次
+                // 默认机票列表
                 flights: [],     
                 info: {},
                 options: {}
             }, 
+            pageIndex: 1,   // 默认显示第一页
+            pageSize: 5,    // 默认显示多少条数据
+            total: 0,       // 总条数
+            dataList: []    // 分页之后的数据列表
         }
     },
     components: {
@@ -88,51 +88,63 @@ export default {
         FlightsFilters,
         FlightsAside
     },
+    watch: {
+        $route(){
+            // 请求机票列表的数据
+             this.getData();
+        }
+    },
     methods: {
-        // 获取航班总数据
-        getData(){
-            this.$axios({
-                url: `airs`,
-                params: this.$route.query // 来自URL的5个参数
-            }).then(res => {
-                this.flightsData = res.data;
-                // 缓存一份新的列表数据数据，这个列表不会被修改
-                // 而flightsData会被修改
-                this.cacheFlightsData = {...res.data};
-                // this.dataList = this.flightsData.flights;
-                 this.setDataList(); // 初始化dataList数据，获取1 - 10条
-            });
-        },
-
-        // 设置dataList数据
-        // arr是展示的新数据，该方法将会传递给过滤组件使用
-        // 设置dataList数据
-        setDataList(){
-            if(arr){    
-                this.pageIndex = 1;
-                this.flightsData.flights = arr;
-                this.flightsData.total = arr.length;
-            }
-            const start = (this.pageIndex - 1) * this.pageSize; 
-            const end = start + this.pageSize; 
-            this.dataList = this.flightsData.flights.slice(start, end);
-        },
-
-        // 切换条数时触发
+        // 分页切换条数触发
         handleSizeChange(value){
             this.pageSize = value;
-            this.pageIndex = 1;
+        },
+        
+        // 页数切换时候触发
+        handleCurrentChange(value){
+            this.pageIndex = value;
+
             this.setDataList();
         },
 
-        // 切换页数时触发
-        handleCurrentChange(value){
-            this.pageIndex = value;
-            this.setDataList();
+        // 修改dataList
+        setDataList(arr){
+
+            if(arr){
+                this.flightsData.flights = arr;
+                // 初始化分页变量
+                this.total = arr.length;
+                this.pageIndex = 1;
+            }
+
+            // 计算截图列表的数据
+            this.dataList = this.flightsData.flights.slice(
+                (this.pageIndex - 1) * this.pageSize,
+                this.pageIndex * this.pageSize
+            );
+        },
+        // 获取航班总数据
+        getData(){
+            // 请求机票列表的数据
+            this.$axios({
+                url: "/airs",
+                params: this.$route.query
+            }).then(res => {
+                this.flightsData = res.data;
+                // 缓存总数据，值和flightsData是相等的，一旦赋值之后不得修改
+                this.cacheflightsData = {...res.data};
+                // 总条数
+                this.total = res.data.total;
+                // 初始化数据
+                this.pageIndex = 1;
+                // 获取第一到第5条
+                this.dataList = res.data.flights.slice(0, 5);
+            });
         },
     },
 
     mounted(){
+        // 请求机票列表的数据
         this.getData();
     }
 }
