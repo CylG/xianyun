@@ -1,5 +1,6 @@
 <template>
     <header class="header">
+        <!-- 中间的内容 -->
         <el-row type="flex" justify="space-between" class="main">
 
             <!-- logo -->

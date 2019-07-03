@@ -2,49 +2,47 @@
     <div class="container">
         <el-row type="flex" justify="space-between">
             <!-- 订单表单 -->
-            <OrderForm :data="infoData" @setAllPrice="setAllPrice"/>
+            <OrderForm 
+            @setInfoData="setInfoData" 
+            @setAllPrice="setAllPrice"/>
 
             <!-- 侧边栏 -->
             <OrderAside :data="infoData" :allPrice="allPrice"/>
-
         </el-row>
     </div>
 </template>
 
 <script>
 import OrderForm from "@/components/air/orderForm.vue";
-import OrderAside from "@/components/air/OrderAside.vue";
+import OrderAside from "@/components/air/orderAside.vue";
+
 export default {
     data(){
         return {
-            // 机票信息
+            // 机票信息的初始化值
             infoData: {
-                insurances: [], // 初始化保险数据
                 seat_infos: {}
             },
+            // 总价格
             allPrice: 0
         }
     },
-    components: {
-        OrderForm,
-        OrderAside
-    },
-    mounted(){
-        const {query} = this.$route;
 
-        this.$axios({
-            url: `airs/${query.id}`,
-            params: {
-                seat_xid: query.seat_xid
-            }
-        }).then(res => {
-            this.infoData = res.data;
-        })
-    },
     methods: {
+        // 给表单组件设置机票信息
+        setInfoData(data){
+            this.infoData = data;
+        },
+
+        // 总价格
         setAllPrice(price){
             this.allPrice = price;
         }
+    },
+
+    components: {
+        OrderForm,
+        OrderAside
     }
 }
 </script>

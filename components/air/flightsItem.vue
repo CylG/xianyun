@@ -1,36 +1,38 @@
 <template>
     <div class="flight-item">
-        <div @click="handleShowRecommend">
+        <div @click="handleShow">
             <!-- 显示的机票信息 -->
             <el-row type="flex" align="middle" class="flight-info">
                 <el-col :span="6">
-                    <span>{{data.airline_name}}</span> {{data.flight_no}}
+                    <span>{{ data.airline_name }} </span> {{data.flight_no}}
                 </el-col>
                 <el-col :span="12">
                     <el-row type="flex" justify="space-between" class="flight-info-center">
                         <el-col :span="8" class="flight-airport">
-                            <strong>{{data.dep_time}}</strong>
-                            <span>{{data.org_airport_name}}{{data.org_airport_quay}}</span>
+                            <strong>{{ data.dep_time }}</strong>
+                            <span>{{ data.org_airport_name }}</span>
                         </el-col>
                         <el-col :span="8" class="flight-time">
                             <span>{{rankTime}}</span>
                         </el-col>
                         <el-col :span="8" class="flight-airport">
-                            <strong>{{data.arr_time}}</strong>
-                            <span>{{data.dst_airport_name}}{{data.dst_airport_quay}}</span>
+                            <strong>{{ data.arr_time }}</strong>
+                            <span>{{ data.dst_airport_name }}</span>
                         </el-col>
                     </el-row>
                 </el-col>
                 <el-col :span="6" class="flight-info-right">
-                    ￥<span class="sell-price">{{data.seat_infos[0].org_settle_price_child}}</span>起
+                    ￥<span class="sell-price">{{data.base_price / 2}}</span>起
                 </el-col>
             </el-row>
         </div>
-        <div class="flight-recommend" v-if="showRecommend">
+        <div class="flight-recommend" v-if="isShow">
             <!-- 隐藏的座位信息列表 -->
             <el-row type="flex"  justify="space-between" align="middle">
                 <el-col :span="4">低价推荐</el-col>
                 <el-col :span="20">
+
+                    <!-- 座位的信息 -->
                     <el-row 
                     type="flex" 
                     justify="space-between" 
@@ -39,7 +41,8 @@
                     v-for="(item, index) in data.seat_infos"
                     :key="index">
                         <el-col :span="16" class="flight-sell-left">
-                            <span>{{item.name}}</span> | {{item.supplierName}}
+                            <span>{{item.name}}</span> | 
+                            {{item.supplierName}}
                         </el-col>
                         <el-col :span="5" class="price">
                             ￥{{item.org_settle_price}}
@@ -47,12 +50,14 @@
                         <el-col :span="3" class="choose-button">
                             <el-button 
                             type="warning" 
-                            size="mini">
+                            size="mini"
+                            @click="handleToOrder(item)">
                             选定
                             </el-button>
                             <p>剩余：{{item.discount}}</p>
                         </el-col>
                     </el-row>
+
                 </el-col>
             </el-row>
         </div>
@@ -63,53 +68,58 @@
 export default {
     data(){
         return {
-            showRecommend: false // 列表默认收起
+            isShow: false // 控制座位信息的显示隐藏
         }
     },
+    
     props: {
         // 数据
         data: {
             type: Object,
-            // 默认是空数组
+            // 默认是空对象
             default: {}
         }
     },
+
     computed: {
-        // 计算出相差时间
         rankTime(){
-            // 转化为分钟
-            const dep = this.data.dep_time.split(":");
-            const arr = this.data.arr_time.split(":");
-            const depVal = dep[0] * 60 + +dep[1];
-            const arrVal = arr[0] * 60 + +arr[1];
+            // 出发时间,到达时间
+            const { dep_time, arr_time } = this.data;
 
-            // 到达时间相减得到分钟
-            let dis = arrVal - depVal;
+            let arr = arr_time.split(":");
+            const dep = dep_time.split(":");
 
-            // 如果是第二天凌晨时间段，需要加24小时
-            if(dis < 0){
-                dis = arrVal + 24 * 60 - depVal;
+            // 如果到达时间小于出发时间 - 就是第二天的时间
+            if(arr[0] < dep[0]){
+                arr[0] += 24;
             }
 
-            // 得到相差时间
-            return `${ Math.floor(dis / 60)}时${dis % 60}分`
+            const count = (arr[0] * 60 + +arr[1]) - (dep[0] * 60 + +dep[1]);
+
+            const hours = Math.floor(count / 60);
+            const min = count % 60;
+
+            return `${hours}时${min}分钟`;
         }
     },
+
     methods: {
-        // 控制推荐列表的展开收起
-        handleShowRecommend(){
-            this.showRecommend = !this.showRecommend;
+        // 显示隐藏座位信息
+        handleShow(){
+            this.isShow = !this.isShow;
         },
-        // 选定按钮触发跳转
-        handleChoose(id, seatId){
+
+        // 跳转到订单
+        handleToOrder(item){
             this.$router.push({
-                path: "/air/order", 
+                // 跳转的页面路径
+                path: "/air/order",
                 query: {
-                    id,
-                    seat_xid: seatId
+                    id: this.data.id,
+                    seat_xid: item.seat_xid
                 }
             })
-        },
+        }
     }
 }
 </script>

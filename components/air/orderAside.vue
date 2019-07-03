@@ -26,7 +26,7 @@
         </div>
         <el-row type="flex" justify="space-between" class="info-bar">
             <span>订单总价</span>
-            <span class="price">￥ {{allPrice}} </span>
+            <span>金额</span>
             <span>数量</span>
         </el-row>
         <el-row type="flex" justify="space-between" class="info-bar">
@@ -41,7 +41,7 @@
         </el-row>
         <el-row type="flex" justify="space-between" align="middle" class="info-bar">
             <span>应付总额：</span>
-            <span class="price">￥ </span>
+            <span class="price">￥ {{allPrice}}</span>
         </el-row>           
     </div>
 </template>
@@ -53,7 +53,7 @@ export default {
             type: Object,
             default: {}
         },
-        // 总金额
+
         allPrice: {
             type: Number,
             default: 0
@@ -81,7 +81,7 @@ export default {
 
             // 得到相差时间
             return `${ Math.floor(dis / 60)}时${dis % 60}分`
-        }
+        },
     },
 }
 </script>

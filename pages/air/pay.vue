@@ -2,7 +2,7 @@
     <div class="container">
         <div class="main">
             <div class="pay-title">
-                支付总金额 <span class="pay-price">￥ 1000</span>
+                支付总金额 <span class="pay-price">￥ {{order.price}}</span>
             </div>
             <div class="pay-main">
                 <h4>微信支付</h4>
@@ -13,6 +13,7 @@
                     <div class="qrcode">
                         <!-- 二维码 -->
                         <canvas id="qrcode-stage"></canvas>
+
                         <p>请使用微信扫一扫</p>
                         <p>扫描二维码支付</p>
                     </div>
@@ -26,81 +27,38 @@
 </template>
 
 <script>
+// 导入生成二维码的包
 import QRCode from "qrcode";
+
 export default {
     data(){
         return {
-            timer: null
+            order: {}
         }
-    },
-    methods: {
-        // 检查付款状态
-        async isPay(data){
-            const {id} = this.$route.query; 
-            const {api, user: {userInfo}} = this.$store.state;
-
-            return this.$axios({
-                url: `airorders/checkpay`,
-                method: "POST",
-                data: {
-                    id,
-                    nonce_str: data.nonce_str,
-                    out_trade_no: data.order_no
-                },
-                headers: {
-                    Authorization: `Bearer ${userInfo.token}`
-                }
-            }).then(res => {
-                const {statusTxt} = res.data;
-
-                if(statusTxt === "支付完成"){
-                     this.$confirm("订单支付成功", '提示', {
-                        confirmButtonText: '确定',
-                        showCancelButton: false,
-                        type: 'success'
-                    });
-
-                    return Promise.resolve(true);
-                }
-
-                return Promise.resolve(false)
-            })
-        }
-    },
-    destroyed(){
-        clearInterval(this.timer)
     },
     mounted(){
-        // 这个处理方法是有缺陷的，不100%准确
-		// userInfo在页面加载完才赋值
-        setTimeout(v => {
-            const {id} = this.$route.query;   
-            const {user: {userInfo}} = this.$store.state;
-
-             // 请求二维码
+        // 需要点时间把本地的值赋给store
+        setTimeout(() => {
+            // 获取订单详情
             this.$axios({
-                url: `airorders/${id}`,
+                url: `/airorders/${this.$route.query.id}`,
+                method: "GET",
                 headers: {
-                    Authorization: `Bearer ${userInfo.token}`
+                    Authorization: `Bearer ${this.$store.state.user.userInfo.token}`
                 }
             }).then(res => {
-                // price 用于展示
-                const {payInfo, price} = res.data;
-                // 生成二维码到canvas
+                this.order = res.data;
+
+                // 获取了dom元素
                 const stage = document.querySelector("#qrcode-stage");
-                QRCode.toCanvas(stage, payInfo.code_url, {
+
+                // 生成二维码，
+                // 第一个参数是canva的dom对象，第二个参数是二维码的链接，第三个是宽高的配置
+                QRCode.toCanvas(stage, this.order.payInfo.code_url, {
                     width: 200
                 }); 
-                this.timer = setInterval(async () => {
-                    const isResolve = await this.isPay(payInfo);
-                    console.log(isResolve)
-                    if(isResolve){
-                        clearInterval(this.timer)
-                        return;
-                    }
-                }, 3000)
             })
-        }, 200);
+        }, 100)  
     }
 }
 </script>
