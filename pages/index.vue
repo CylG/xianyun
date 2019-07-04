@@ -1,33 +1,25 @@
 <template>
     <div class="container">
-
         <!-- 幻灯片 -->
+        <!-- interval: 切换的间隔时间 -->
+        <!-- arrow: 切换箭头的显示时机 -->
         <el-carousel 
         :interval="5000" 
         arrow="always">
+            <!-- 幻灯片的没一项 -->
             <el-carousel-item 
             v-for="(item, index) in banners" 
             :key="index">
-            
-                <!-- <div class="banner-image" 
-                :style="`
-                background:url(${item.url}) center center no-repeat;
-                background-size:contain contain;
-                `">
-                </div> -->
-
-                <!-- 请求后端接口数据 -->
                 <div class="banner-image" 
                 :style="`
-                background:url(${$axios.defaults.baseURL}${item.url}) center center no-repeat;
+                background:url(${$axios.defaults.baseURL + item.url}) center center no-repeat;
                 background-size:contain contain;
                 `">
                 </div>
-
             </el-carousel-item>
         </el-carousel>
 
-        <!-- 搜索框 -->
+         <!-- 搜索框 -->
         <div class="banner-content">
             <div class="search-bar">
                 
@@ -35,12 +27,13 @@
                 <el-row 
                 type="flex" 
                 class="search-tab">
+                    <!-- tab切换栏 -->
                     <span 
-                    v-for="(item, index) in options" 
-                    :key="index" 
-                    :class="{active: index === currentOption}"
+                    v-for="(item, index) in options"
+                    :key="index"
+                    :class="{active: currentOption == index}"
                     @click="handleOption(index)">
-                        <i>{{item.name}}</i>
+                        <i>{{ item.name }}</i>
                     </span>
                 </el-row>
                 
@@ -50,105 +43,72 @@
                 align="middle" 
                 class="search-input">
                     <input 
-                    :placeholder="options[currentOption].placeholder" 
-                    v-model="searchValue"
-                    @keyup.enter="handleSearch"/>
-                    <i class="el-icon-search" @click="handleSearch"></i>
+                    :placeholder="options[currentOption].placeholder"/>
+                    <i class="el-icon-search" ></i>
                 </el-row>
 
             </div>
         </div>
+
     </div>
 </template>
-
-// <script>
-// export default {
-//     data(){
-//         return {
-//             // 轮播图数据
-//             banners: [
-//                 {
-//                     url: "http://157.122.54.189:9095/assets/images/th03.jfif",
-//                 },
-//                 {
-//                     url: "http://157.122.54.189:9095/assets/images/th04.jfif",
-//                 }
-//             ]
-//         }
-//     }
-// }
-// </script>
-
-// 请求后端接口数据
-// <script>
-// export default {
-//     data(){
-//         return {
-//             banners: [], // 轮播图数据
-//         }
-//     },
-//     mounted(){
-//         this.$axios({
-//             url: "/scenics/banners"
-//         }).then(res => {
-//             const {data} = res.data;
-//             this.banners = data;
-//         })
-//     }
-// }
-// </script>
 
 <script>
 export default {
     data(){
         return {
-            banners: [],    // 轮播图数据
-            options: [      // 搜索框tab选项
-                {
+            // 轮播图数据
+            banners: [
+                // {
+                //     url: "http://157.122.54.189:9095/assets/images/th03.jfif",
+                // },
+                // {
+                //     url: "http://157.122.54.189:9095/assets/images/th04.jfif",
+                // }
+            ],
+
+            options: [
+                { 
                     name: "攻略", 
-                 	placeholder: "搜索城市", 
-                 	pageUrl: "/post?city="
+                    placeholder: "搜索城市"
                 },
                 {
                     name: "酒店", 
-                    placeholder: "请输入城市搜索酒店", 
-                    pageUrl: "/hotel?city="},
+                    placeholder: "请输入城市搜索酒店",
+                },
                 {
                     name: "机票", 
-                    placeholder: "请输入出发地", 
-                    pageUrl: "/air"
+                    placeholder: "请输入出发地"
                 }
             ],
-            searchValue: "",    // 搜索框的值
-            currentOption: 0,   // 当前选中的选项        
+            
+            // 搜索框当前高亮的tab栏
+            currentOption: 0
         }
     },
+
     mounted(){
+        // 请求轮播图接口
         this.$axios({
-            url: "/scenics/banners"
+            url: "/scenics/banners",
+            method: "GET"
         }).then(res => {
             const {data} = res.data;
+            // 把数组保存到banners
             this.banners = data;
-        })
+        });
+
+        // console.log(this.$axios.defaults.baseURL)
     },
 
     methods: {
-        // 切换tab栏时候触发
+        // 点击tab的事件
         handleOption(index){
-            // 设置当前tab
             this.currentOption = index;
 
-            // 如果切换的机票tab，那么直接跳转到机票首页
-            const item = this.options[index];
-            if(item.name === "机票"){
-                return this.$router.push(item.pageUrl);
+            if(index == 2){
+                this.$router.push("/air");
             }
-        },
-        // 搜索时候触发
-        handleSearch(){
-            const item = this.options[this.currentOption];
-            // 跳转时候给对应的页面url加上搜索内容参数
-            this.$router.push(item.pageUrl + this.searchValue);
         }
     },
 }
